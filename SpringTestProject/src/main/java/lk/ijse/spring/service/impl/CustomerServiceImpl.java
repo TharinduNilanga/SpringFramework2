@@ -1,8 +1,11 @@
 package lk.ijse.spring.service.impl;
 
+import lk.ijse.spring.dto.CustomerDTO;
 import lk.ijse.spring.entity.Customer;
 import lk.ijse.spring.repo.CustomerRepo;
 import lk.ijse.spring.service.CustomerService;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,21 +21,36 @@ import java.util.List;
 public class CustomerServiceImpl  implements CustomerService {
 
     @Autowired
-    private CustomerRepo customerRepo;
+    private CustomerRepo repo;
+
+    @Autowired
+    private ModelMapper modelMapper;
+
 
     @Override
-    public void saveCustomer(Customer entity) {
-        if (!customerRepo.existsById(entity.getId())) {
-           customerRepo.save(entity);
+    public void saveCustomer(CustomerDTO dto) {
+        if (!repo.existsById(dto.getId())) {
+            repo.save(modelMapper.map(dto,Customer.class));
         } else {
             throw new RuntimeException("Customer Already Exist..!");
         }
+
     }
 
     @Override
-    public void updateCustomer(Customer entity) {
-        if (customerRepo.existsById(entity.getId())) {
-            customerRepo.save(entity);
+    public void deleteCustomer(String id) {
+        if (repo.existsById(id)){
+            repo.deleteById(id);
+        }else{
+            throw new RuntimeException("Please check the Customer ID.. No Such Customer..!");
+        }
+
+    }
+
+    @Override
+    public void updateCustomer(CustomerDTO dto) {
+        if (repo.existsById(dto.getId())) {
+            repo.save(modelMapper.map(dto,Customer.class));
         } else {
             throw new RuntimeException("No Such Customer To Update..! Please Check the ID..!");
         }
@@ -40,25 +58,16 @@ public class CustomerServiceImpl  implements CustomerService {
     }
 
     @Override
-    public void deleteCustomer(String id) {
-        if (customerRepo.existsById(id)){
-            customerRepo.deleteById(id);
-        }else{
-            throw new RuntimeException("Please check the Customer ID.. No Such Customer..!");
-        }
-    }
-
-    @Override
-    public Customer searchCustomer(String id) {
-        if (customerRepo.existsById(id)){
-            return customerRepo.findById(id).get();
+    public CustomerDTO searchCustomer(String id) {
+        if (repo.existsById(id)){
+            return modelMapper.map( repo.findById(id).get(),CustomerDTO.class);
         }else{
             throw new RuntimeException("No Customer For "+id+" ..!");
         }
     }
 
     @Override
-    public List<Customer> getAllCustomer() {
-        return customerRepo.findAll();
+    public List<CustomerDTO> getAllCustomer() {
+        return modelMapper.map( repo.findAll(),new TypeToken<List<CustomerDTO>>(){}.getType());
     }
 }
